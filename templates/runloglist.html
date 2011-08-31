@@ -1,0 +1,47 @@
+<table border=1>
+<tr>
+<th>Run time
+<th>Sequence path
+<th>Duration
+<th>Description
+<th>Variables
+<th>Image time
+<th>Image type
+<th>Raw frames
+<th>Processed frames
+</tr>
+{% for runloginfo in runlog_list %}
+<tr>
+<td>{{runloginfo.time|date:"M-d-Y H:i:s"}}
+<td>{{runloginfo.sequencepath}}
+<td>{{runloginfo.sequenceduration}}
+<td>{{runloginfo.description}}
+<td>
+{% for varvalue in runloginfo.variablevalue_set.all %}
+{{varvalue.name}} = {{varvalue.value}} <BR>
+{% endfor %}
+<td>
+{% for imginfo in runloginfo.imageinfo_set.all|slice:":2" %}
+{{imginfo.time}}<BR>
+{% endfor %}  
+<td>
+{% for imginfo in runloginfo.imageinfo_set.all|slice:":2" %}
+{{imginfo.imgtype.name}}<BR>
+{% endfor %}  
+<td>
+{% for imginfo in runloginfo.imageinfo_set.all|slice:":2" %}
+{% for frameinfo in imginfo.rawframe_set.all %}
+<a href="{{frameinfo.pngurl}}"><img src="{{frameinfo.thumburl}}" height=64 width=64></a>
+{% endfor %}
+<BR>
+{% endfor %}  
+<td>
+{% for imginfo in runloginfo.imageinfo_set.all|slice:":2" %}
+{% for frameinfo in imginfo.processedframe_set.all %}
+<a href="{{frameinfo.pngurl}}"><img src="{{frameinfo.thumburl}}" height=64 width=64></a>
+{% endfor %}
+<BR>
+{% endfor %}  
+</tr>
+{% endfor %}
+</table>

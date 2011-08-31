@@ -1,0 +1,54 @@
+ <html>                                                                  
+ <head>  
+ <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.14.custom.css" rel="stylesheet" />	                                                                
+ <script type="text/javascript" src="./js/jquery.js"></script>   
+ <script type="text/javascript" src="./js/jquery-ui.js"></script>
+ <script type="text/javascript" src="./js/jquery-ui-timepicker.js"></script>        
+ <script type="text/javascript">                                         
+$(function() {
+		$("#starttime" ).datetimepicker();
+		$('#endtime').datetimepicker();		
+});
+
+$(document).ready(function() {	
+	$('#filters').submit(function(event) {
+		event.preventDefault();
+		
+		var values = $('form').serialize();
+		
+		$.get("http://bec2.mit.edu/django/clinamen/filters/filter", values, function(data){
+      		$('#results').html(data);
+   		});
+
+		//alert(values);
+		//$('#results').load('test.html');
+	});
+});
+
+
+</script>                                                             
+ </head>                                                                 
+ <body>                                                                  
+ 	
+<div>
+<form id="filters">
+<p>Start Time: <input name="starttime" id="starttime" type="text"></p>
+<p>End Time: <input name="endtime" id="endtime" type="text"></p>
+<p>Sequence Name Contains: <input name="name" id="name" type="text"></p>
+<p>Description Contains: <input name="description" id="description" type="text"></p>
+<p>Variable Name Contains: <input name="varname" id="varname" type="text"> and 
+	<select name="varcomp" id="varcomp">
+		<option value="ex">exists</option>
+		<option value="gt">is greater than</option>
+		<option value="eq">is equal to</option>
+		<option value="lt">is less than</option>
+	</select>
+<input name="varvalue" id="varvalue" type="text">
+</p>
+<p><input type="submit" value="Search"><input type="reset"></p>
+</form>   
+</div>       
+<hr>   
+<div id="results"><p></p></div>      
+</body>                                                                 
+</html>
