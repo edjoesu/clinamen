@@ -1,9 +1,11 @@
 # Create your views here.
 from django.shortcuts import render_to_response, get_list_or_404
 from django.http import HttpResponse
+from django.core.servers.basehttp import FileWrapper
 from clinamen.filelist.models import *
 import datetime 
 import json
+import zipfile, tempfile 
 
 def tester(request):
 	return HttpResponse("Test succeeded again")
@@ -113,8 +115,27 @@ def isnumber(s):
 		return True
 	except ValueError:
 		return False
+	
+def filteredlist(request, url):
+	q=applyfilters(request)
+	return render_to_response('runloglist.html', {'runlog_list': q})
 
-def filteredlist(request, url): 
+def filteredzip(request, url):
+	q=applyfilters(request)
+	tmp = tempfile.TemporaryFile()
+	zf = zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED)
+	for runlog in q:
+		for img in runlog.imageinfo_set.all():
+			zf.write(img.path)
+	zf.close
+	wrapper = FileWrapper(tmp)
+	response = HttpResponse(wrapper, content_type='application/zip')
+	response['Content-Disposition'] = 'attachment; filename=myfile.zip'
+	response['Content-Length'] = tmp.tell()
+	tmp.seek(0)
+	return response
+
+def applyfilters(request): 
 	q=RunLogInfo.objects.all()
 	
 	if request.GET['name'] != "":
@@ -135,7 +156,7 @@ def filteredlist(request, url):
 				q=q.filter(variablevalue__name__contains=request.GET['varname'], variablevalue__value__eq=float(request.GET['varvalue']))
 		        elif request.GET['varcomp'] == "gt":
 				q=q.filter(variablevalue__name__contains=request.GET['varname'], variablevalue__value__gt=float(request.GET['varvalue']))
-	return render_to_response('runloglist.html', {'runlog_list': q})
+	return q
 
 def countsample(request):	
 	imgcount=ImageInfo.objects.filter(imgtype__name=request.GET['txttype']).count()

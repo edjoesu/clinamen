@@ -4,7 +4,7 @@ import scipy as sp
 import re
 import inspect
 import collections
-#from odysseus.imageio import imgimport_intelligent, list_of_frames
+from odysseus.imageio import imgimport_intelligent, list_of_frames
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 from django.db import models
 import filelist.filesettings as filesettings

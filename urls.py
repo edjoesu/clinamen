@@ -7,9 +7,9 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
     (r'^clinamen/images/([A-Za-z]+)', 'clinamen.filelist.views.imagelist'),
     (r'^clinamen/runlogs/([A-Za-z]+)', 'clinamen.filelist.views.runloglist'),
+    
     (r'^clinamen/filters/([A-Za-z]+)', 'clinamen.filelist.views.filteredlist'),
-    # Example:
-    # (r'^clinamen/', include('clinamen.foo.urls')),
+    (r'^clinamen/zipfile/([A-Za-z]+)', 'clinamen.filelist.views.filteredzip'),
     
     (r'^clinamen/imgproc/methodlist', 'clinamen.filelist.views.methodlist'),
     (r'^clinamen/imgproc/remove', 'clinamen.filelist.views.removemethod'),

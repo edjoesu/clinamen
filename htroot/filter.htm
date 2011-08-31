@@ -6,29 +6,29 @@
  <script type="text/javascript" src="./js/jquery-ui-timepicker.js"></script>        
  <script type="text/javascript">                                         
 $(function() {
-		$("#starttime" ).datetimepicker();
-		$('#endtime').datetimepicker();		
+		$("#starttime" ).datetimepicker({timeFormat: 'hh:mm:ss'});
+		$('#endtime').datetimepicker({timeFormat: 'hh:mm:ss'});		
 });
 
 $(document).ready(function() {	
 	$('#filters').submit(function(event) {
-		event.preventDefault();
-		
-		var values = $('form').serialize();
-		
-		$.get("http://bec2.mit.edu/django/clinamen/filters/filter", values, function(data){
+		event.preventDefault();		
+		var values = $('form').serialize();		
+		$.get("http://bec2.mit.edu/django/clinamen/filters/filters", values, function(data){
       		$('#results').html(data);
    		});
-
-		//alert(values);
-		//$('#results').load('test.html');
+	});
+	
+	$('#getzip').click(function(event){
+		var values = $('form').serialize();
+		window.open("http://bec2.mit.edu/django/clinamen/zipfile/zipfile?" + values, "Download");		
 	});
 });
 
 
 </script>                                                             
- </head>                                                                 
- <body>                                                                  
+</head>                                                                 
+<body>                                                                  
  	
 <div>
 <form id="filters">
@@ -47,7 +47,8 @@ $(document).ready(function() {
 </p>
 <p><input type="submit" value="Search"><input type="reset"></p>
 </form>   
-</div>       
+</div>
+<input type="button" name="getzip" id="getzip" value="Get ZIP">    
 <hr>   
 <div id="results"><p></p></div>      
 </body>                                                                 
