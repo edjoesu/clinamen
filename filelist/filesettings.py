@@ -1,0 +1,9 @@
+IMG_LOCS = {"cimages":"C:\\images\\"}
+RL_LOCS = {"crunlogs":"C:\\runlogs\\"}
+STATIC_DIR = "./static/"
+#THUMB_DIR = "C:\\thumb\\"
+PNG_DIR = "C:\\django\\django\\clinamen\\static\\png\\"
+PNG_URL = "../../../static/png/"
+THUMB_DIR = "C:\\django\\django\\clinamen\\static\\thumb\\"
+THUMB_URL = "../../../static/thumb/"
+THUMB_SIZE = 64

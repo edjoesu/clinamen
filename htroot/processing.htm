@@ -1,0 +1,221 @@
+<html>                                                                  
+<head>  
+<link type="text/css" href="css/ui-lightness/jquery-ui-1.8.14.custom.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="css/imgareaselect-default.css" />	                                                                
+<script type="text/javascript" src="./js/jquery.js"></script>   
+<script type="text/javascript" src="./js/jquery-ui.js"></script>     
+<script type="text/javascript" src="./scripts/jquery.imgareaselect.pack.js"></script>   
+<script type="text/javascript">                                         
+
+$(document).ready(function(){
+	window.rois = {};
+	window.sample ={};
+	window.sample.count = 1;
+	window.sample.countmin = 1;
+	window.sample.countmax = 10;
+	
+	$('#between').html(window.sample.count);
+	
+	$('#gettype').click(function(event){	
+		event.preventDefault();
+		
+		var values = $('form').serialize();
+	
+		var jqhr=$.get("../django/clinamen/imgproc/countsample", values, function(data){
+     		window.sample.countmax=parseInt(data);
+		})
+	
+		var jqhr=$.get("../django/clinamen/imgproc/methodlist", values, function(data){
+     		$('#methods').html(data);
+		})
+		.complete(function() {
+			loadmethods();
+			updatesamples(); 
+		});
+	});	
+	
+	$('#prevsample').click(function(event){
+		if (window.sample.count - 1 >= window.sample.countmin)
+		{
+		window.sample.count = window.sample.count - 1;
+		}
+		$('#between').html(window.sample.count);
+		updatesamples();
+	});		
+	
+	$('#nextsample').click(function(event){
+		if (window.sample.count +1 <= window.sample.countmax)
+		{
+		window.sample.count = window.sample.count + 1;
+		}
+		$('#between').html(window.sample.count);
+		updatesamples();
+	});
+});
+
+function updatesamples() 
+{
+	var jqhr=$.get("../django/clinamen/imgproc/getsample.html",
+	{activetype: $('#activetype').attr('data-activetype'), samplecount: window.sample.count}, function(data){
+    	$('#sample').html(data);
+   	})
+   	.complete(function() {loadsamples();});
+}
+
+function updaterois()
+{
+	$('$img[name|="roi"]').each(function(index) {
+		if (this.getAttribute('data-roi') != '') {	
+			var this_roi = JSON.parse(this.getAttribute('data-roi'));
+			$(this).imgAreaSelect({handles: true, x1: this_roi.x1, y1: this_roi.y1, x2: this_roi.x2, y2: this_roi.y2, 
+				onSelectEnd: function (img, selection) { 
+					window['rois'][img.getAttribute('data-arg')] = new Array(selection.x1, selection.y1, selection.x2, selection.y2);
+				}
+			});
+		} else {
+			$(this).imgAreaSelect({handles: true, 
+				onSelectEnd: function (img, selection) { 
+					window['rois'][img.getAttribute('data-arg')] = new Array(selection.x1, selection.y1, selection.x2, selection.y2);
+				}
+			});
+		}		  
+  	});
+}
+
+function loadmethods()
+{
+	$('#addmethod').click(function(event) {		
+		var jqhr=$.get("../django/clinamen/imgproc/add.html",
+		{activetype: $('#activetype').attr('data-activetype'), modulename:$('#methodlist option:selected').attr('data-modulename'),
+		methodname:$('#methodlist option:selected').attr('data-methodname')}, function(data){
+     		$('#methods').html(data);
+   		})
+   		.complete(function() {loadmethods();});
+	});
+	
+	$('$button[name|="remove"]').click(function(event) {
+		var jqhr=$.get("../django/clinamen/imgproc/remove.html",
+		{activetype: $('#activetype').attr('data-activetype'), modulename: this.getAttribute('data-modulename'),
+		 methodname: this.getAttribute('data-methodname')}, function(data){
+      		$('#methods').html(data);
+      		$('#parameters').html("");
+   		})
+   		.complete(function() {loadmethods();});
+	});
+	
+	$('$button[name|="edit"]').click(function(event) {
+		var jqhr=$.get("../django/clinamen/imgproc/edit.html", 
+		{activetype: $('#activetype').attr('data-activetype'), modulename: this.getAttribute('data-modulename'), 
+		methodname: this.getAttribute('data-methodname')}, function(data){
+    		$('#parameters').html(data);
+		})
+		.complete(function() {
+			loadparams();
+		});
+	});
+	
+	$('#processtype').click(function(event) {		
+		var jqhr=$.get("../django/clinamen/imgproc/process.html",
+		{activetype: $('#activetype').attr('data-activetype')}, function(data){})
+   		.complete(function() {});
+	});
+	
+}
+
+function loadparams()
+{
+	$('#update').click(function(event) {
+		var values = $('form').serialize(); 
+		values = values + '&' + $.param({activetype: $('#activetype').attr('data-activetype'),
+		activemodulename:$('#activemethod').attr('data-modulename'), activemethodname:$('#activemethod').attr('data-methodname')}) +
+		'&rois=' + JSON.stringify(window['rois']);		
+		var jqhr=$.get("../django/clinamen/imgproc/update.html", values, function(data){		
+		})
+		.complete(function() {});
+	});
+	
+	updaterois();
+}
+
+function loadsamples()
+{
+	$('$img[name|="sample"]').click(function(event) {
+		var jqhr=$.get("../django/clinamen/imgproc/setsample.html", 
+		{activetype: $('#activetype').attr('data-activetype'), src: this.getAttribute('src')}, function(data){})
+		.complete(function() {});
+	});			
+}
+
+function loaditems()
+{
+	$('#addmethod').click(function(event) {		
+		var jqhr=$.get("../django/clinamen/imgproc/add.html",
+		{activetype: $('#activetype').attr('data-activetype'), modulename:$('#methodlist option:selected').attr('data-modulename'),
+		methodname:$('#methodlist option:selected').attr('data-methodname')}, function(data){
+     		$('#methods').html(data);
+   		})
+   		.complete(function() {loaditems();});
+	});
+	
+	$('#update').click(function(event) {
+		var values = $('form').serialize(); 
+		values = values + '&' + $.param({activetype: $('#activetype').attr('data-activetype'),
+		activemodulename:$('#activemethod').attr('data-modulename'), activemethodname:$('#activemethod').attr('data-methodname')}) +
+		'&rois=' + JSON.stringify(window['rois']);		
+		var jqhr=$.get("../django/clinamen/imgproc/update.html", values, function(data){		
+		})
+		.complete(function() {loaditems();});
+	});
+	
+	$('$button[name|="remove"]').click(function(event) {
+		var jqhr=$.get("../django/clinamen/imgproc/remove.html",
+		{activetype: $('#activetype').attr('data-activetype'), modulename: this.getAttribute('data-modulename'),
+		 methodname: this.getAttribute('data-methodname')}, function(data){
+      		$('#methods').html(data);
+      		$('#parameters').html("");
+   		})
+   		.complete(function() {loaditems();});
+	});
+	
+	$('$button[name|="edit"]').click(function(event) {
+		var jqhr=$.get("../django/clinamen/imgproc/edit.html", 
+		{activetype: $('#activetype').attr('data-activetype'), modulename: this.getAttribute('data-modulename'), 
+		methodname: this.getAttribute('data-methodname')}, function(data){
+    		$('#parameters').html(data);
+		})
+		.complete(function() {
+			loaditems();
+			updaterois();
+		});
+	});
+	
+	$('$img[name|="sample"]').click(function(event) {
+		var jqhr=$.get("../django/clinamen/imgproc/setsample.html", 
+		{activetype: $('#activetype').attr('data-activetype'), src: this.getAttribute('src')}, function(data){})
+		.complete(function() {loaditems();});
+	});		
+}
+</script>                                                             
+</head>                                                                 
+<body>                                                                  
+ 	
+<div>
+<form id="imagetypeform">
+	<p><b>Image Type:</b> <input name="txttype" id="txttype" type="text"></p>
+	<p><input type="button" name="gettype" id="gettype" value="Find Type"></p>	
+	
+	<hr>
+	<div id="methods"><p></p></div>
+	
+	<hr>
+	<div id="parameters"><p></p></div>
+	
+	<hr> 
+	<div id="sampleform"> </div>
+	<input type="button" id="prevsample" value="<"><span id='between'></span><input type="button" id="nextsample" value=">">
+	
+	<div id="sample"></div>
+	
+</form>        
+</body>                                                            
+</html>

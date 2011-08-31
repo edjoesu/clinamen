@@ -1,0 +1,15 @@
+<div id="activemethod" data-modulename={{activemethod.modulename}} data-methodname={{activemethod.name}}><b>Parameters for method:</b> {{activemethod.modulename}}.{{activemethod.name}}</div>
+
+{% for arg, value in arg_params.items %}
+<p>{{arg}}: <input type="text" name={{arg}} value={{value}}> 
+{% endfor %}
+
+{% for arg, value in arg_rois.items %}
+<p>{{arg}}: <img name="roi" data-arg="{{arg}}" data-roi="{{value}}" src={{sampleframe.pngurl}}> 
+{% endfor %}
+
+<p><input type="button" id="update" value="Update Values" name="update"></p>
+
+
+
+

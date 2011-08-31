@@ -1,0 +1,18 @@
+<div id="activetype" data-activetype={{activetype.name}}><b>Image type:</b> {{activetype.name}}</div>
+
+<p>Add a processing method: 
+<select id="methodlist">
+	{% for method in method_list %}
+		<option data-modulename="{{method.modulename}}" data-methodname="{{method.name}}" value="{{method.modulename}}___{{method.name}}">{{method.modulename}}::{{method.name}}</option>
+	{% endfor %}
+</select>	
+</p>
+<p><input type="button" name="addmethod" id="addmethod" value="Add this method"></p>
+
+<p>Active methods:</p>
+{% for method in active_list %}
+<p><b>Module name:</b> {{method.modulename}} <b>Function name:</b> {{method.name}} <input type="button" name="edit" data-modulename="{{method.modulename}}" data-methodname="{{method.name}}" value="Edit Parameters"><input type="button" name="remove" data-modulename="{{method.modulename}}" data-methodname="{{method.name}}" value="Remove method"></p>
+{% endfor %}
+
+<p><input type="button" name="processtype" id="processtype" value="Process this type"></p>
+

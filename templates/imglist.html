@@ -1,0 +1,24 @@
+<table border=1>
+<tr>
+<th>Image time
+<th>Processed frames
+<th>Raw frames
+</tr>
+{% for imginfo in img_list %}
+<tr>
+<td>{{imginfo.time|date:"M-d-Y H:i:s"}}
+<td>
+{% for thumbinfo in imginfo.thumbinfo_set.all %}
+{% if thumbinfo.framenumber < 0 %}
+<img src="{{thumbinfo.url}}" height=64 width=64>
+{% endif %}
+{% endfor %}  
+<td>
+{% for thumbinfo in imginfo.thumbinfo_set.all %}
+{% if thumbinfo.framenumber >= 0 %}
+<img src="{{thumbinfo.url}}" height=64 width=64>
+{% endif %}
+{% endfor %}  
+</tr>
+{% endfor %}
+</table>

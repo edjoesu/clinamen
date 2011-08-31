@@ -1,0 +1,3 @@
+{% for frameinfo in sampleimage.rawframe_set.all %}
+<img name="sample" src="{{frameinfo.pngurl}}">
+{% endfor %}
