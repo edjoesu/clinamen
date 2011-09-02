@@ -1,9 +1,17 @@
  <html>                                                                  
  <head>  
- <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.14.custom.css" rel="stylesheet" />	                                                                
+ <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.14.custom.css" rel="stylesheet" />	
+ <link rel="stylesheet" href="./css/jquery.treeview.css" />
+ <link rel="stylesheet" href="./css/screen.css" />
+	                                                                                                                   
  <script type="text/javascript" src="./js/jquery.js"></script>   
  <script type="text/javascript" src="./js/jquery-ui.js"></script>
- <script type="text/javascript" src="./js/jquery-ui-timepicker.js"></script>        
+ <script type="text/javascript" src="./js/jquery-ui-timepicker.js"></script>  
+ <script src="./js/jquery.cookie.js" type="text/javascript"></script>
+ <script src="./js/jquery.treeview.js" type="text/javascript"></script>
+ <script type="text/javascript" src="demo.js"></script>
+	  
+       
  <script type="text/javascript">                                         
 $(function() {
 		$("#starttime" ).datetimepicker({timeFormat: 'hh:mm:ss'});
@@ -14,7 +22,7 @@ $(document).ready(function() {
 	$('#filters').submit(function(event) {
 		event.preventDefault();		
 		var values = $('form').serialize();		
-		$.get("http://bec2.mit.edu/django/clinamen/filters/filters", values, function(data){
+		$.get("http://bec2.mit.edu/django/clinamen/dayseq/dayseq", values, function(data){
       		$('#results').html(data);
    		});
 	});

@@ -10,6 +10,8 @@ urlpatterns = patterns('',
     
     (r'^clinamen/filters/([A-Za-z]+)', 'clinamen.filelist.views.filteredlist'),
     (r'^clinamen/zipfile/([A-Za-z]+)', 'clinamen.filelist.views.filteredzip'),
+    (r'^clinamen/dayseq/([A-Za-z]+)', 'clinamen.filelist.views.dayseqview'),
+    (r'^dayseq', 'clinamen.filelist.views.dayseqview'),
     
     (r'^clinamen/imgproc/methodlist', 'clinamen.filelist.views.methodlist'),
     (r'^clinamen/imgproc/remove', 'clinamen.filelist.views.removemethod'),
