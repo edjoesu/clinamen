@@ -57,6 +57,7 @@ class ImageInfo(models.Model):
 	def ProcessImage(self): 
 		for method in self.imgtype.methods.all():
 			procmodule = __import__(method.modulename)
+			reload(procmodule)
 			procmethod = getattr(procmodule, method.name)
 			argdict = {}
 			for param in TypeParameters.objects.filter(imagetype=self.imgtype, methodargument__method=method):
@@ -68,22 +69,22 @@ class ImageInfo(models.Model):
 				result = (result,)
 			for ii in range(len(result)):
 				if isarray(result[ii]):
-					filename=os.path.splitext(os.path.split(self.path)[1])[0]+'_'+method.name+'_'+str(ii)+'.png'
-						
+					filename=os.path.splitext(os.path.split(self.path)[1])[0]+'_'+method.name+'_'+str(ii)+'.png'						
 					newrecord = ProcessedFrame(sourceimage=self, method=method, framenumber=ii) 
-					newrecord.saveframe(result[ii], filename)
+					newrecord.saveframe(result[ii], filename, cmin=0, cmax=1)
 					newrecord.save()
 				else:
 					newrecord = ProcessedValue(sourceimage=self, method=method, value=float(item[ii]), index=ii)
 					newrecord.save()
 	def getClosestSequence(self):
-		sql = "SELECT * FROM filelist_runloginfo ORDER BY ABS(TIMESTAMPDIFF(SECOND, time,'" + self.time.strftime('%Y-%m-%d %H:%M:%S') + "')) LIMIT 1"
+		sql = "SELECT * FROM filelist_runloginfo ORDER BY ABS(TIMESTAMPDIFF(SECOND, time,'" + self.time.strftime('%Y-%m-%d %H:%M:%S') + "')-sequenceduration) LIMIT 1"
 		for retrunlog in RunLogInfo.objects.raw(sql):
 			self.runlog = retrunlog
+			self.getTypeFromDescription()
 	def getTypeFromDescription(self): 
 		matchObj = re.search("imgtype=(\w+)", self.runlog.description)
 		if matchObj:
-			self.imgtype= matchObj.group(1)		
+			(self.imgtype, created)=ImageType.objects.get_or_create(name=matchObj.group(1))
 	class Meta:
 		ordering=['-time']
 
@@ -98,13 +99,13 @@ class FrameInfo(models.Model):
 	thumbwidth = models.IntegerField()
 	framenumber = models.IntegerField(null=True, blank=True)
 	sourceimage = models.ForeignKey('ImageInfo', null=True, blank=True)	
-	def saveframe(self, frame, filename):
+	def saveframe(self, frame, filename, cmin=None, cmax=None):
 		self.pngpath=os.path.join(filesettings.PNG_DIR,filename)
 		self.pngurl=filesettings.PNG_URL+filename
 		self.thumbpath=os.path.join(filesettings.THUMB_DIR,filename)
 		self.thumburl=filesettings.THUMB_URL+filename		
 		
-		im=sp.misc.toimage(frame)
+		im=sp.misc.toimage(frame, cmin=cmin, cmax=cmax)
 		im.save(self.pngpath)
 			
 		self.pngwidth = np.size(frame,0)

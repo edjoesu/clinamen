@@ -10,7 +10,6 @@ binary (.npy): np.save('filename', img)
 """
 
 import os
-
 import numpy as np
 import scipy as sp
 # if available, use Zach Pincus' pil_lite which has correct 16-bit TIFF loading
@@ -50,6 +49,23 @@ def list_of_frames(img_name):
     else:
         return imglist
 
+def trans_nonorm(img_name):
+    raw_frames=imgimport_intelligent(img_name)
+    
+    pwa = raw_frames[:, :, 0]
+    pwoa = raw_frames[:, :, 1]
+    df = raw_frames[:, :, 2]
+    
+    nom = pwa - df
+    den = pwoa - df
+    
+    nom = np.where(nom<1, 1, nom)
+    den = np.where(den<1, 1, den)
+    
+    transimg = nom.astype(float)/den
+    
+    return transimg/1.35
+    
 
 def imgimport_intelligent(img_name, foo=3, bar=4, roi_baz=[12,24,56,78]):
     """Opens an image file containing one or more frames
@@ -101,7 +117,22 @@ def imgimport_intelligent(img_name, foo=3, bar=4, roi_baz=[12,24,56,78]):
     else:
         raise ImportError, 'Number of frames is %s' %(len(imglist))
 
-    return img_array
+    #return img_array
+
+    pwa = img_array[:, :, 0]
+    pwoa = img_array[:, :, 1]
+    df = img_array[:, :, 2]
+
+    nom = pwa - df
+    den = pwoa - df
+
+    nom = np.where(nom<1, 1, nom)
+    den = np.where(den<1, 1, den)
+
+    transimg = nom.astype(float)/den
+
+    return 5
+
 
 
 def import_rawframes(img_name):

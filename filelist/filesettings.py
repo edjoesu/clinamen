@@ -1,4 +1,4 @@
-IMG_LOCS = {"cimages":"C:\\images\\"}
+IMG_LOCS = {"pixis":"C:\\Dropbox\\imgpixis\\","pflyold":"C:\\Dropbox\\imgpflyold"}
 RL_LOCS = {"crunlogs":"C:\\runlogs\\"}
 STATIC_DIR = "./static/"
 #THUMB_DIR = "C:\\thumb\\"

@@ -25,7 +25,7 @@
 {% endfor %}
 <td>
 {% for imginfo in runloginfo.imageinfo_set.all|slice:":2" %}
-{{imginfo.time}}<BR>
+{{imginfo.time|date:"M-d-Y H:i:s"}}<BR>
 {% endfor %}  
 <td>
 {% for imginfo in runloginfo.imageinfo_set.all|slice:":2" %}

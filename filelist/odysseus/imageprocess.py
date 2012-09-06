@@ -11,11 +11,10 @@ transmission for absorption images.
 import os
 
 import scipy as sp
-import scipy.ndimage as ndimage
 import numpy as np
 import Image
 import matplotlib as mpl
-import pylab
+#import pylab
 
 
 def trans2od(transimg, maxod=3.5):

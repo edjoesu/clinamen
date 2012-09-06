@@ -5,6 +5,7 @@ from django.core.servers.basehttp import FileWrapper
 from django.core.paginator import Paginator
 from django.template import RequestContext
 from clinamen.filelist.models import *
+import populatedb
 import datetime 
 import json
 import zipfile, tempfile 
@@ -26,37 +27,37 @@ def render_methodlist(imagetype):
 
 def methodlist(request):
 	return render_methodlist(request.GET['txttype'])
-			
+
 def addmethod(request):
 	activetype = ImageType.objects.get(name=request.GET['activetype'])
 	selectedmethod = ProcessingMethod.objects.get(modulename = request.GET['modulename'], name=request.GET['methodname'])
 	activetype.methods.add(selectedmethod)
-	
+
 	return render_methodlist(request.GET['activetype'])
 
 def removemethod(request):
 	activetype = ImageType.objects.get(name=request.GET['activetype'])
 	selectedmethod = ProcessingMethod.objects.get(modulename = request.GET['modulename'], name=request.GET['methodname'])
 	activetype.methods.remove(selectedmethod)
-	
+
 	return render_methodlist(request.GET['activetype'])
 
 def editparams(request):
 	arg_list = MethodArgument.objects.filter(method__modulename=request.GET['modulename'], method__name=request.GET['methodname'])
 	#arg_list = MethodArgument.objects.filter(method__modulename=request.GET['modulename'], method__name=request.GET['methodname']).exclude(isROI=True)
 	#argROI_list = MethodArgument.objects.filter(method__modulename=request.GET['modulename'], method__name=request.GET['methodname']).filter(isROI=True)
-	
+
 	activemethod = ProcessingMethod.objects.get(modulename = request.GET['modulename'], name=request.GET['methodname'])
 	activetype = ImageType.objects.get(name=request.GET['activetype'])
-	
+
 	param_list = TypeParameters.objects.filter(imagetype__name=request.GET['activetype'], methodargument__method__modulename=request.GET['modulename'], methodargument__method__name=request.GET['methodname'])
 	ROI_list = TypeROI.objects.filter(imagetype__name=request.GET['activetype'], methodargument__method__modulename=request.GET['modulename'], methodargument__method__name=request.GET['methodname'])
-	
+
 	sampleframe = activetype.sample 
-	
+
 	arg_params = {}
 	arg_rois ={}
-	
+
 	for arg in arg_list:
 		if arg.isROI:
 			if sampleframe: 
@@ -77,9 +78,9 @@ def updateparams(request):
 	arg_list = MethodArgument.objects.filter(method__modulename=request.GET['activemodulename'], method__name=request.GET['activemethodname'])
 	activetype = ImageType.objects.get(name=request.GET['activetype'])
 	activemethod = ProcessingMethod.objects.get(modulename = request.GET['activemodulename'], name=request.GET['activemethodname'])
-	
+
 	roi_dict = json.loads(request.GET['rois'])
-	
+
 	for arg in arg_list:
 		if arg.name in request.GET:
 			if request.GET[arg.name] != '':
@@ -90,16 +91,16 @@ def updateparams(request):
 					param = TypeParameters.objects.create(imagetype = activetype, methodargument=arg, value=request.GET[arg.name])					
 				param.save()	
 		if arg.name in roi_dict:						
-				try:
-					roi = TypeROI.objects.get(imagetype = activetype, methodargument=arg)					
-				except TypeROI.DoesNotExist:
-					roi = TypeROI.objects.create(imagetype = activetype, methodargument=arg)	
-					
-				roi.x1 = roi_dict[arg.name][0]
-				roi.y1 = roi_dict[arg.name][1]
-				roi.x2 = roi_dict[arg.name][2]				
-				roi.y2 = roi_dict[arg.name][3]
-				roi.save()	
+			try:
+				roi = TypeROI.objects.get(imagetype = activetype, methodargument=arg)					
+			except TypeROI.DoesNotExist:
+				roi = TypeROI.objects.create(imagetype = activetype, methodargument=arg)	
+
+			roi.x1 = roi_dict[arg.name][0]
+			roi.y1 = roi_dict[arg.name][1]
+			roi.x2 = roi_dict[arg.name][2]				
+			roi.y2 = roi_dict[arg.name][3]
+			roi.save()	
 	return HttpResponse("Success.")
 
 def processtype(request):
@@ -114,8 +115,10 @@ def isnumber(s):
 		return True
 	except ValueError:
 		return False
-	
+
 def filteredlist(request, url):
+	if 'updateimg' in request.GET:
+		populatedb.updateimagesbytime()	
 	q=applyfilters(request)
 	return render_to_response('runloglist.html', {'runlog_list': q}, context_instance=RequestContext(request))
 
@@ -136,34 +139,34 @@ def filteredzip(request, url):
 
 def dayseqview(request):
 	RESULTS_PER_PAGE = 500
-	
+
 	q=applyfilters(request)
 	response=render_to_response('dayseq.html', {'runlog_list': q}, context_instance=RequestContext(request))
-	
+
 	if 'page' in request.GET.keys():
 		page=int(request.GET['page'])
 	else:
 		page=1
-	
+
 	q_total = q.count()
 	q_end=q[RESULTS_PER_PAGE*(page-1)].time
 	q_start=q[min(RESULTS_PER_PAGE*page-1, q_total-1)].time
 	q_page = q.filter(time__gte=q_start, time__lte=q_end)
-	
+
 	q_count=q_page.count()
 	timelist=q_page.values_list('time', flat=True)
 	start_ind=[ii+1 for ii, delta in enumerate([aa-bb for aa,bb in zip(timelist[:q_count], timelist[1:])]) if (delta > datetime.timedelta(hours=6))]
 	start_ind.insert(0,0)
-	
+
 	response.write('<UL id="black" class="treeview-black">')
-	
+
 	for ii in range(len(start_ind)):
-		
+
 		endtime=q_page[start_ind[ii]].time
 		starttime=q_page[(start_ind[ii+1]-1 if (ii+1)<len(start_ind) else q_count-1)].time
 		qday=q_page.filter(time__gte=starttime, time__lte=endtime)
 		seqpaths=uniquify(qday.values_list('sequencepath', flat=True))
-		
+
 		html = '<LI class="closed"><SPAN>Run day starting %s and ending %s.</SPAN><UL>' % (starttime, endtime)
 		response.write(html)
 		if seqpaths is not None:
@@ -171,17 +174,17 @@ def dayseqview(request):
 		for seqpath in seqpaths:
 			qdayseq=qday.filter(sequencepath=seqpath)
 			response.write('<LI class="closed"><SPAN>'+seqpath+"      "+str(qdayseq.count())+"</SPAN><UL>")
-			
+
 			response.write("<LI><TABLE>")
 			for seq in qdayseq:
 				response.write("<TR>")
 				response.write("<TD>" + str(seq.time)+ "</TD>")
-				
+
 				response.write("<TD>")
 				for varvalue in seq.variablevalue_set.all():
 					response.write(varvalue.name + "=" + str(varvalue.value) + "<BR>")
 				response.write("</TD>")
-				
+
 				response.write("<TD>")
 				imset=seq.imageinfo_set.all()
 				for imginfo in imset[:2]:
@@ -189,7 +192,7 @@ def dayseqview(request):
 						response.write('<a href="'+frameinfo.pngurl+'"><img height="64" width="64" src="'+frameinfo.thumburl+'"></a>')
 					response.write("<BR>")
 				response.write("</TD>")
-				
+
 				response.write("<TD>")
 				imset=seq.imageinfo_set.all()
 				for imginfo in imset[:2]:
@@ -197,19 +200,19 @@ def dayseqview(request):
 						response.write('<a href="'+frameinfo.pngurl+'"><img height="64" width="64" src="'+frameinfo.thumburl+'"></a>')
 					response.write("<BR>")
 				response.write("</TD>")
-					
+
 				response.write("</TR>")
 			response.write("</LI></TABLE>")
 			response.write('</UL></LI>')
 		response.write('</UL></LI>')
 	response.write('</UL>')
-	
+
 	response.write('</DIV></BODY></HTML>')
 	return response
 
 def applyfilters(request): 
 	q=RunLogInfo.objects.all()
-	
+
 	if request.GET['name'] != "":
 		q=q.filter(sequencepath__contains=request.GET['name'])
 	if request.GET['description'] != "":
@@ -222,11 +225,11 @@ def applyfilters(request):
 		if request.GET['varcomp'] == "ex":
 			q=q.filter(variablevalue__name__contains=request.GET['varname'])
 		elif isnumber(request.GET['varvalue']):
-		        if request.GET['varcomp'] == "lt":
+			if request.GET['varcomp'] == "lt":
 				q=q.filter(variablevalue__name__contains=request.GET['varname'], variablevalue__value__lt=float(request.GET['varvalue']))
 			elif request.GET['varcomp'] == "eq":
 				q=q.filter(variablevalue__name__contains=request.GET['varname'], variablevalue__value__eq=float(request.GET['varvalue']))
-		        elif request.GET['varcomp'] == "gt":
+			elif request.GET['varcomp'] == "gt":
 				q=q.filter(variablevalue__name__contains=request.GET['varname'], variablevalue__value__gt=float(request.GET['varvalue']))
 	return q
 
@@ -245,7 +248,7 @@ def setsample(request):
 	activetype.sample = src
 	activetype.save()
 	return HttpResponse("Success.")
-	       
+
 def uniquify(seq):
 	seen = set()
 	seen_add = seen.add
@@ -253,17 +256,16 @@ def uniquify(seq):
 
 
 
-	
-
-	
-	
-	
 
 
 
 
-		
 
-		
-		
-	        
+
+
+
+
+
+
+
+
