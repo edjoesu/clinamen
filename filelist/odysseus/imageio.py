@@ -10,6 +10,7 @@ binary (.npy): np.save('filename', img)
 """
 
 import os
+
 import numpy as np
 import scipy as sp
 # if available, use Zach Pincus' pil_lite which has correct 16-bit TIFF loading
@@ -18,6 +19,7 @@ try:
 except ImportError:
     import Image
 #import tables
+import tifffile
 
 
 def list_of_frames(img_name):
@@ -26,21 +28,17 @@ def list_of_frames(img_name):
     Details are as described in the imgimport_intelligent docstring.
 
     """
-
-    img = Image.open(img_name)
+    img = tifffile.TiffFile(img_name)
+    #img = Image.open(img_name)
     imglist = []
 
     try:
-        for i in xrange(8):
-            if img.mode == 'I':
-                imdata = np.asarray(img, dtype=np.int16)
-            else:
-                imdata = np.asarray(img, dtype=np.float32)
-            # fix 3-channel TIFF images
+        for i in range(np.size(img)):
+            imdata = img[i].asarray()
+	    imdata = imdata.astype(np.float32)
             if np.rank(imdata)==3:
                 imdata = imdata[:,:,0] + 256*imdata[:,:,1] + 65536*imdata[:,:,2]
             imglist.append(imdata)
-            img.seek(i+1) # next frame
     except EOFError:
         pass
 
@@ -49,23 +47,6 @@ def list_of_frames(img_name):
     else:
         return imglist
 
-def trans_nonorm(img_name):
-    raw_frames=imgimport_intelligent(img_name)
-    
-    pwa = raw_frames[:, :, 0]
-    pwoa = raw_frames[:, :, 1]
-    df = raw_frames[:, :, 2]
-    
-    nom = pwa - df
-    den = pwoa - df
-    
-    nom = np.where(nom<1, 1, nom)
-    den = np.where(den<1, 1, den)
-    
-    transimg = nom.astype(float)/den
-    
-    return transimg/1.35
-    
 
 def imgimport_intelligent(img_name, foo=3, bar=4, roi_baz=[12,24,56,78]):
     """Opens an image file containing one or more frames
@@ -131,9 +112,7 @@ def imgimport_intelligent(img_name, foo=3, bar=4, roi_baz=[12,24,56,78]):
 
     transimg = nom.astype(float)/den
 
-    return 5
-
-
+    return img_array
 
 def import_rawframes(img_name):
     """Opens an image file containing three frames
@@ -328,11 +307,28 @@ def load_hdfimage(fname, dirname=None, ext_replace=True):
         pwa = np.asarray(h5file.root.rawframes.pwa)
         pwoa = np.asarray(h5file.root.rawframes.pwoa)
         df = np.asarray(h5file.root.rawframes.df)
-        imgarray = np.dstack([pwa, pwao, df])
+        imgarray = np.dstack([pwa, pwoa, df])
         return imgarray
 
     finally:
         h5file.close()
+
+def trans_nonorm(img_name):
+    raw_frames=imgimport_intelligent(img_name)
+    
+    pwa = raw_frames[:, :, 0]
+    pwoa = raw_frames[:, :, 1]
+    df = raw_frames[:, :, 2]
+    
+    nom = pwa - df
+    den = pwoa - df
+    
+    nom = np.where(nom<1, 1, nom)
+    den = np.where(den<1, 1, den)
+    
+    transimg = nom.astype(float)/den
+    
+    return transimg/1.35
 
 
 def convert_xcamera_to_hdf5(imglist, ext='xraw'):

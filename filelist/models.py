@@ -55,27 +55,31 @@ class ImageInfo(models.Model):
 	def deleteProcFrames(self):
 		ProcessedFrame.objects.filter(sourceimage=self).delete()
 	def ProcessImage(self): 
-		for method in self.imgtype.methods.all():
-			procmodule = __import__(method.modulename)
-			reload(procmodule)
-			procmethod = getattr(procmodule, method.name)
-			argdict = {}
-			for param in TypeParameters.objects.filter(imagetype=self.imgtype, methodargument__method=method):
-				argdict[param.methodargument.name]=param.value
-			for ROIparam in TypeROI.objects.filter(imagetype=self.imgtype, methodargument__method=method):
-				argdict[ROIParam.methodargument.name]=ROIparam.ToDict()
-			result=procmethod(self.path, **argdict)
-			if not isinstance(result,tuple):
-				result = (result,)
-			for ii in range(len(result)):
-				if isarray(result[ii]):
-					filename=os.path.splitext(os.path.split(self.path)[1])[0]+'_'+method.name+'_'+str(ii)+'.png'						
-					newrecord = ProcessedFrame(sourceimage=self, method=method, framenumber=ii) 
-					newrecord.saveframe(result[ii], filename, cmin=0, cmax=1)
-					newrecord.save()
-				else:
-					newrecord = ProcessedValue(sourceimage=self, method=method, value=float(item[ii]), index=ii)
-					newrecord.save()
+		if self.imgtype:
+			for method in self.imgtype.methods.all():
+				procmodule = __import__(method.modulename)
+				reload(procmodule)
+				procmethod = getattr(procmodule, method.name)
+				argdict = {}
+				for param in TypeParameters.objects.filter(imagetype=self.imgtype, methodargument__method=method):
+					argdict[param.methodargument.name]=param.value
+				for ROIparam in TypeROI.objects.filter(imagetype=self.imgtype, methodargument__method=method):
+					argdict[ROIParam.methodargument.name]=ROIparam.ToDict()
+				try:
+					result=procmethod(self.path, **argdict)
+					if not isinstance(result,tuple):
+						result = (result,)
+					for ii in range(len(result)):
+						if isarray(result[ii]):
+							filename=os.path.splitext(os.path.split(self.path)[1])[0]+'_'+method.name+'_'+str(ii)+'.png'						
+							newrecord = ProcessedFrame(sourceimage=self, method=method, framenumber=ii) 
+							newrecord.saveframe(result[ii], filename, cmin=0, cmax=1)
+							newrecord.save()
+						else:
+							newrecord = ProcessedValue(sourceimage=self, method=method, value=float(item[ii]), index=ii)
+							newrecord.save()
+				except: 
+					pass
 	def getClosestSequence(self):
 		sql = "SELECT * FROM filelist_runloginfo ORDER BY ABS(TIMESTAMPDIFF(SECOND, time,'" + self.time.strftime('%Y-%m-%d %H:%M:%S') + "')-sequenceduration) LIMIT 1"
 		for retrunlog in RunLogInfo.objects.raw(sql):

@@ -29,7 +29,7 @@ def updatenewimages():
 		for imgpath in filetools.get_files_in_dir(iloc):
 			mod_time_file = os.lstat(imgpath).st_mtime
 			mod_datetime = datetime.datetime.fromtimestamp(mod_time_file)
-			imginfo, created=models.ImageInfo.objects.get_or_create(path=imgpath)
+			imginfo, created=models.ImageInfo.objects.get_or_create(path=imgpath, time=mod_datetime, loc_key=ikey)
 			if created:
 				imginfo.time=mod_datetime
 				imginfo.loc_key=ikey
@@ -62,7 +62,13 @@ def updateimagesbytime():
 def getClosestSequence(imginfo):
 	sql = "SELECT * FROM filelist_runloginfo ORDER BY ABS(TIMESTAMPDIFF(SECOND, time,'" + imginfo.time.strftime('%Y-%m-%d %H:%M:%S') + "')) LIMIT 1"
 	for retrunlog in models.RunLogInfo.objects.raw(sql):
-		imginfo.runlog = retrunlog		
+		imginfo.runlog = retrunlog	
+		
+
+def updatetype(type_name):
+	imgtype = models.ImageType(name=type_name)
+	imgtype.ClearProcessed()
+	imgtype.ProcessType()
 					
 
 	
