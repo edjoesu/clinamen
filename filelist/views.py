@@ -5,6 +5,7 @@ from django.core.servers.basehttp import FileWrapper
 from django.core.paginator import Paginator
 from django.template import RequestContext
 from clinamen.filelist.models import *
+import clinamen.filelist.filesettings as filesettings
 import populatedb
 import datetime 
 import json
@@ -16,6 +17,7 @@ def imagelist(request, url):
 
 def runloglist(request, url):
 	runlog_list = get_list_or_404(RunLogInfo)
+	addshortpath(runloglist, filesettings.SHORT_PATH_LEVELS)
 	return render_to_response('runloglist.html', {'runlog_list': runlog_list})
 
 def render_methodlist(imagetype):
@@ -120,6 +122,7 @@ def filteredlist(request, url):
 	if 'updateimg' in request.GET:
 		populatedb.updateimagesbytime()	
 	q=applyfilters(request)
+	addshortpath(q, filesettings.SHORT_PATH_LEVELS)
 	return render_to_response('runloglist.html', {'runlog_list': q}, context_instance=RequestContext(request))
 
 def filteredzip(request, url):
@@ -254,7 +257,13 @@ def uniquify(seq):
 	seen_add = seen.add
 	return [ x for x in seq if x not in seen and not seen_add(x)]
 
-
+def addshortpath(obj_list, levels_to_keep):
+	for obj in obj_list:
+		try:			
+			match = re.search(r"(\\[^\\]*){1," + str(levels_to_keep) + r"}$", obj.sequencepath)
+			obj.shortpath = match.group(0)			                 
+		except:
+			obj.shortpath = ""
 
 
 
