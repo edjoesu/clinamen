@@ -1,0 +1,89 @@
+ <html>                                                                  
+ <head>  
+ <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.14.custom.css" rel="stylesheet" />	   
+ <link rel="stylesheet" href="./css/jquery.treeview.css" />
+ <link rel="stylesheet" href="./css/screen.css" />
+	                                                             
+ <script type="text/javascript" src="./js/jquery.js"></script>   
+ <script type="text/javascript" src="./js/jquery-ui.js"></script>
+ <script type="text/javascript" src="./js/jquery-ui-timepicker.js"></script>      
+ <script src="./js/jquery.cookie.js" type="text/javascript"></script>
+ <script src="./js/jquery.treeview.js" type="text/javascript"></script>
+ <script type="text/javascript" src="demo.js"></script>
+	  
+ <script type="text/javascript">                                         
+$(function() {
+		$("#starttime" ).datetimepicker({timeFormat: 'hh:mm:ss'});
+		$('#endtime').datetimepicker({timeFormat: 'hh:mm:ss'});		
+});
+
+$(document).ready(function() {	
+	$('#search').click(function(event) {
+		event.preventDefault();		
+		var values = $('form').serialize();		
+		document.getElementById("results").src = "http://bec2.mit.edu/django/clinamen/filters/filter?" + values;
+	});
+	
+	$('#dayseq').click(function(event) {
+		event.preventDefault();		
+		var values = $('form').serialize();		
+		document.getElementById("results").src = "http://bec2.mit.edu/django/dayseq?" + values;
+	});
+	
+	$('#getzip').click(function(event){
+		var values = $('form').serialize();
+		window.open("http://bec2.mit.edu/django/clinamen/zipfile/zipfile?" + values, "Download");		
+	});
+});
+
+function resizeFrame(framename) {
+	var newheight;
+	newheight = document.getElementById(framename).contentWindow.document .body.scrollHeight;
+	document.getElementById(framename).height = (newheight) + "px";
+}
+
+function pageY(elem) {
+    return elem.offsetParent ? (elem.offsetTop + pageY(elem.offsetParent)) : elem.offsetTop;
+}
+
+var buffer = 20; //scroll bar buffer
+function resizeIframe() {
+    var height = document.documentElement.clientHeight;
+    height -= pageY(document.getElementById('results')) + buffer ;
+    height = (height < 0) ? 0 : height;
+    document.getElementById('results').style.height = height + 'px';
+}
+
+
+</script>                                                             
+</head>                                                                 
+<body style="overflow: hidden">                                                                  
+ 	
+<div>
+<h3>Runlog Search</h3>
+<form id="filters">
+<p>Start Time: <input name="starttime" id="starttime" type="text"> End Time: <input name="endtime" id="endtime" type="text"></p>
+<p>Sequence Name Contains: <input name="name" id="name" type="text"></p>
+<p>Description Contains: <input name="description" id="description" type="text"></p>
+<p>Variable Name Contains: <input name="varname" id="varname" type="text"> and 
+	<select name="varcomp" id="varcomp">
+		<option value="ex">exists</option>
+		<option value="gt">is greater than</option>
+		<option value="eq">is equal to</option>
+		<option value="lt">is less than</option>
+	</select>
+<input name="varvalue" id="varvalue" type="text">
+</p>
+<p><input type="button" name="search" id="search" value="Search"><input type="reset"></p>
+<p><input type="checkbox" name="updateimg" id="updateimg" value="Checked">Update Images Before Displaying Results</p>
+</form>   
+</div>
+<p>Additional formats:  
+<input type="button" name="dayseq" id="dayseq" value="Tree View">
+<input type="button" name="getzip" id="getzip" value="Images as .ZIP">
+</p>
+<p><a href="processing.htm">Configure image processing</a> / <a href="phpMyAdmin/">DB Admin interface</a></p> 
+<hr>     
+<iframe id="results" width="100%" scrolling="auto" frameborder="0" marginheight="0" marginwidth="0" onload="resizeIframe();"></iframe>      
+</body>                                                                 
+</html>

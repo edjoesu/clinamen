@@ -1,0 +1,11 @@
+/static/*
+*.png
+*.tif
+*.jpg
+*.gif
+*.pyc
+/htroot/backup/*
+/htroot/css/*
+/htroot/development-bundle/*
+/htroot/images/*
+/htroot/js/*
