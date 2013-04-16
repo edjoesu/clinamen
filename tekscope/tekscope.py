@@ -10,15 +10,16 @@ from struct import unpack
 class tekScope:
     # Class for autosaving data from Tektronix oscilloscopes 
     
-    def __init__(self, visaName="", numChannels=4, tifDir = r"./", csvDir = r"./", timeout = 30, imgFormat = 'JPEG'):
+    def __init__(self, visaName="", numChannels=4, imgDir = r"./", csvDir = r"./", timeout = 30, imgFormat = 'JPEG'):
         try:
             self.scope = visa.instrument(visaName)
             self.scope.timeout = timeout
             self.scope.write("HARDCOPY:FORMAT " + imgFormat)
         except visa.VisaIOError:
-            raise 
+            raise
+        self.activeChannels = []
         self.numchannels = numChannels
-        self.tifDir = tifDir
+        self.imgDir = imgDir
         self.csvDir = csvDir
         self.imgFormat = imgFormat
         
@@ -30,14 +31,14 @@ class tekScope:
         
         stopFlag = False
         while not stopFlag: 
-            if self.scope.ask("ACQ:STATE?"):
+            if int(self.scope.ask("ACQ:STATE?")):
                 time.sleep(pollDelay)
             else:
                 stopFlag = True
                 
-                timestamp = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+                timestamp = datetime.datetime.now().strftime('%Y-%m-%dT%H%M%S')
 
-                imgpath = self.tifDir + timestamp + '.' + self.imgFormat
+                imgpath = self.imgDir + timestamp + '.' + self.imgFormat
                 self.getImage(imgpath)
                                 
                 self.updateActiveChannels()                
@@ -125,10 +126,13 @@ class tekScope:
         imgFile.close()
     def updateActiveChannels(self):
         # update self.activeChannels with the channels that are currently active
-        self.activeChannels = range(1, self.numchannels+1)
-        for channel in self.activeChannels:
-            if int(scope.ask("SEL:CH"+ str(channel) +"?"))==0:
-                self.activeChannels.remove(channel)
+        chanlist = np.arange(1, self.numchannels+1)
+        activelist = []
+        for channel in chanlist:
+            selected = self.scope.ask("SEL:CH"+ str(channel) +"?")
+            if int(selected)==1:
+                activelist.append(channel)
+        self.activeChannels = activelist
                 
             
         
