@@ -10,9 +10,8 @@ transmission for absorption images.
 
 import os
 
-import scipy as sp
 import numpy as np
-import Image
+from PIL import Image
 import matplotlib as mpl
 #import pylab
 

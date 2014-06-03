@@ -1,14 +1,14 @@
 import os
 import numpy as np
-import scipy as sp
 import re
 import inspect
 import collections
+from scipy.misc import toimage
 from odysseus.imageio import imgimport_intelligent, list_of_frames
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 from django.db import models
+from PIL import Image
 import filelist.filesettings as filesettings
-import Image
 
 class RunLogInfo(models.Model):
 	#path = models.FilePathField(filesettings.RL_DIR, primary_key=True)
@@ -32,8 +32,8 @@ class VariableValue(models.Model):
 class ImageInfo(models.Model):
 	#path = models.FilePathField(filesettings.IMG_DIR, primary_key=True)
 	path = models.CharField(max_length=100, primary_key=True)
-	loc_key = models.CharField(max_length=100)
-	time = models.DateTimeField()
+	loc_key = models.CharField(max_length=100, null=True, blank=True)
+	time = models.DateTimeField(null=True, blank=True)
 	height = models.IntegerField(null=True, blank=True)
 	width = models.IntegerField(null=True, blank=True)
 	number_of_frames = models.IntegerField(null=True, blank=True)
@@ -109,7 +109,7 @@ class FrameInfo(models.Model):
 		self.thumbpath=os.path.join(filesettings.THUMB_DIR,filename)
 		self.thumburl=filesettings.THUMB_URL+filename		
 		
-		im=sp.misc.toimage(frame, cmin=cmin, cmax=cmax)
+		im=toimage(frame, cmin=cmin, cmax=cmax)
 		im.save(self.pngpath)
 			
 		self.pngwidth = np.size(frame,0)

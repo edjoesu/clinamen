@@ -11,8 +11,8 @@ from odysseus.imageio import imgimport_intelligent
 from odysseus.imageprocess import calc_absimage
 import collections
 
-def fullupdateimages(): 
-	for ikey, iloc in filesettings.IMG_LOCS.iteritems():
+def fullupdateimages(verbose=False): 
+	for ikey, iloc in filesettings.ACTIVE_IMG_LOCS.iteritems():
 		for imgpath in filetools.get_files_in_dir(iloc):
 			mod_time_file = os.lstat(imgpath).st_mtime
 			mod_datetime = datetime.datetime.fromtimestamp(mod_time_file)
@@ -23,10 +23,14 @@ def fullupdateimages():
 			imginfo.save()
 			imginfo.ProcessImage()
 			imginfo.save()
+			if verbose:
+				print imgpath
 
-def updatenewimages():			
-	for ikey, iloc in filesettings.IMG_LOCS.iteritems():
+def updatenewimages(verbose=False):			
+	for ikey, iloc in filesettings.ACTIVE_IMG_LOCS.iteritems():
 		for imgpath in filetools.get_files_in_dir(iloc):
+			if verbose:
+				print imgpath
 			mod_time_file = os.lstat(imgpath).st_mtime
 			mod_datetime = datetime.datetime.fromtimestamp(mod_time_file)
 			imginfo, created=models.ImageInfo.objects.get_or_create(path=imgpath, time=mod_datetime, loc_key=ikey)
@@ -39,17 +43,21 @@ def updatenewimages():
 				imginfo.save()
 				imginfo.ProcessImage()
 				imginfo.save()	
+				
 
-def updateimagesbytime():	
-	newestimgtime = models.ImageInfo.objects.order_by('-time')[0].time
+def updateimagesbytime(newestimgtime = None):
+	if newestimgtime is None:
+		newestimgtime = models.ImageInfo.objects.order_by('-time')[0].time
 	
-	for ikey, iloc in filesettings.IMG_LOCS.iteritems():
+	for ikey, iloc in filesettings.ACTIVE_IMG_LOCS.iteritems():
 		for imgpath in filetools.get_files_in_dir(iloc):
 			mod_time_file = os.lstat(imgpath).st_mtime
 			mod_datetime = datetime.datetime.fromtimestamp(mod_time_file)
 			if mod_datetime > newestimgtime:
-				imginfo, created=models.ImageInfo.objects.get_or_create(path=imgpath, time=mod_datetime, loc_key=ikey)
+				imginfo, created=models.ImageInfo.objects.get_or_create(path=imgpath)
 				if created:
+					imginfo.time=mod_datetime
+					imginfo.loc_key=ikey
 					imginfo.save() 
 					imginfo.makeRawFrames()
 					imginfo.getClosestSequence()
@@ -64,7 +72,6 @@ def getClosestSequence(imginfo):
 	for retrunlog in models.RunLogInfo.objects.raw(sql):
 		imginfo.runlog = retrunlog	
 		
-
 def updatetype(type_name):
 	imgtype = models.ImageType(name=type_name)
 	imgtype.ClearProcessed()

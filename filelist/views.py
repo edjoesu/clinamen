@@ -17,7 +17,7 @@ def imagelist(request, url):
 
 def runloglist(request, url):
 	runlog_list = get_list_or_404(RunLogInfo)
-	addshortpath(runloglist, filesettings.SHORT_PATH_LEVELS)
+	addshortpath(runlog_list, filesettings.SHORT_PATH_LEVELS)
 	return render_to_response('runloglist.html', {'runlog_list': runlog_list})
 
 def render_methodlist(imagetype):

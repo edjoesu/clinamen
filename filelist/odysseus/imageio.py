@@ -17,7 +17,7 @@ import scipy as sp
 try:
     import pil_lite.pil_core.Image as Image
 except ImportError:
-    import Image
+    from PIL import Image
 #import tables
 import tifffile
 

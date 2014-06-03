@@ -1,4 +1,5 @@
 IMG_LOCS = {"pixis":"C:\\Dropbox\\imgpixis\\","pflyold":"C:\\Dropbox\\imgpflyold", "pfly":"C:\\Dropbox\\imgpfly", "andor":"C:\\Dropbox\\imgandor"}
+ACTIVE_IMG_LOCS = {"pixis":"C:\\Dropbox\\imgpixis\\","pfly":"C:\\Dropbox\\imgpfly", "andor":"C:\\Dropbox\\imgandor"}
 RL_LOCS = {"crunlogs":"C:\\runlogs\\"}
 STATIC_DIR = "./static/"
 
