@@ -234,6 +234,8 @@ def applyfilters(request):
 				q=q.filter(variablevalue__name__contains=request.GET['varname'], variablevalue__value__eq=float(request.GET['varvalue']))
 			elif request.GET['varcomp'] == "gt":
 				q=q.filter(variablevalue__name__contains=request.GET['varname'], variablevalue__value__gt=float(request.GET['varvalue']))
+	if 'imgonly' in request.GET: 
+		q=q.filter(imageinfo__isnull=False)
 	return q
 
 def countsample(request):	
